@@ -35,21 +35,59 @@
                         <p class="float-right">Member : </p>
                     </div>
                     <div class="col-10">
+                        <input type="text" id="rent_member_id" name="rent_member_id" disabled> :
                         <input type="text" id="rent_member_code" name="rent_member_code" disabled>
-                        <button class="btn btn-outline-dark float-right" data-toggle="modal" data-target="#SelectMembers">Select Member</button>
+                        <button class="btn btn-outline-dark float-right" data-toggle="modal" data-target="#SelectMembers" onclick="runShowMembers({{members}})">Select member</button>
                     </div>
                 </div>
             </div>
             <div class="col-12 mt-3">
                 <h3>Rent Books</h3>
                 <div class="row mb-3">
-                    <div id="book_item">
-                        <div class="col-2">
-                            <p class="float-right">Book : </p>
+                    <div class="col-12">
+                        <button class="btn btn-outline-dark" data-toggle="modal" data-target="#SelectBook" onclick="runShowBooks({{books}})">Add rent book</button>
+                    </div>
+                    <div class="col-12">
+                        <div class="row mt-3" id="all_book_rent">
                         </div>
-                        <div class="col-10">
-                            <input type="text" id="rent_member_code" name="rent_member_code" disabled>
-                            <button class="btn btn-outline-dark float-right" data-toggle="modal" data-target="#SelectBook">Select Book</button>
+                    </div>
+
+                </div>
+            </div>
+            <div class="vol-12 mt-3">
+                <button class="btn btn-outline-dark float-right" onclick="saveRent()">Confirm Rent</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Zone -->
+    <div class="modal fade" id="SelectMembers" tabindex="-1" aria-labelledby="SelectMembersLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="SelectMemberslLabel">Select member</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="row">
+                                        <div class="col-9">
+                                            <input type="text" class="form-control" id="search_select_members" placeholder="CODE Member">
+                                        </div>
+                                        <div class="col-3">
+                                            <button class="btn btn-outline-dark" onclick="searchMemberRent({{members}})">Search Member</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12" id="select_members">
+                                </div>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <button type="button" class="btn btn-secondary float-right" data-dismiss="modal">CANCEL</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -57,84 +95,35 @@
         </div>
     </div>
 
-    <!-- Modal Zone -->
-    <div class="modal fade" id="SelectMembers" tabindex="-1" aria-labelledby="SelectMembersLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="SelectMemberslLabel">Select member</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                </div>
-                <div class="modal-body">
-                    <form action="/member" method="post">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="row">
-                                    <div class="col-4">
-                                        <p class="card-text float-right">Code : </p>
-                                    </div>
-                                    <div class="col-8"><input class="form-control" type="text" id="code" name="code"></div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-4">
-                                        <p class="card-text float-right">Name : </p>
-                                    </div>
-                                    <div class="col-8"><input class="form-control" type="text" id="name" name="name"></div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-4">
-                                        <p class="card-text float-right">Credit : </p>
-                                    </div>
-                                    <div class="col-8"><input class="form-control" type="text" id="credit" name="credit"></div>
-                                </div>
-                            </div>
-                            <div class="col-12 mt-2">
-                                <button type="button" class="btn btn-secondary float-right" data-dismiss="modal">CANCEL</button>
-                                <button type="submit" class="btn btn-primary float-right mr-2">ADD</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal fade" id="SelectBook" tabindex="-1" aria-labelledby="SelectBookLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="SelectBooklLabel">Select book</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
-                    <form action="/member" method="post">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="row">
-                                    <div class="col-4">
-                                        <p class="card-text float-right">Code : </p>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="row">
+                                        <div class="col-9">
+                                            <input type="text" class="form-control" id="search_select_book" placeholder="Name Book">
+                                        </div>
+                                        <div class="col-3">
+                                            <button class="btn btn-outline-dark" onclick="searchBookRent({{books}})">Search Book</button>
+                                        </div>
                                     </div>
-                                    <div class="col-8"><input class="form-control" type="text" id="code" name="code"></div>
                                 </div>
-                                <div class="row mt-2">
-                                    <div class="col-4">
-                                        <p class="card-text float-right">Name : </p>
-                                    </div>
-                                    <div class="col-8"><input class="form-control" type="text" id="name" name="name"></div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-4">
-                                        <p class="card-text float-right">Credit : </p>
-                                    </div>
-                                    <div class="col-8"><input class="form-control" type="text" id="credit" name="credit"></div>
+                                <div class="col-12" id="select_books">
                                 </div>
                             </div>
                             <div class="col-12 mt-2">
                                 <button type="button" class="btn btn-secondary float-right" data-dismiss="modal">CANCEL</button>
-                                <button type="submit" class="btn btn-primary float-right mr-2">ADD</button>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>

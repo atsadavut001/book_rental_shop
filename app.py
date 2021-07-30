@@ -1,8 +1,10 @@
 from os import error
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, jsonify
 from flask_session import Session
 import sqlite3
 from helpers import login_required
+import json
+import datetime
 
 app = Flask(__name__)
 
@@ -56,7 +58,7 @@ def dashboard():
     rents = []
     with sqlite3.connect("book_rental_shop.db") as con:
         cur = con.cursor()
-        data = cur.execute("SELECT rent.rt_id, members.mb_name, rent.rt_status, rent.rt_create_at FROM rent JOIN members on members.mb_id = rent.mb_id")
+        data = cur.execute("SELECT rent.rt_id, members.mb_name, rent.rt_status, rent.rt_create_at FROM rent JOIN members on members.mb_id = rent.mb_id ORDER BY rent.rt_create_at DESC")
         for row in data:
             rents.append({
                 "id":row[0],
@@ -233,14 +235,23 @@ def rent():
     rents = []
     with sqlite3.connect("book_rental_shop.db") as con:
         cur = con.cursor()
-        data = cur.execute("SELECT rent.rt_id, members.mb_name, rent.rt_status, rent.rt_create_at FROM rent JOIN members on members.mb_id = rent.mb_id")
-        for row in data:
+        data = cur.execute("SELECT rent.rt_id, members.mb_name, rent.rt_status, rent.rt_create_at FROM rent JOIN members on members.mb_id = rent.mb_id ORDER BY rent.rt_create_at DESC")
+        for rent in data:
             rents.append({
-                "id":row[0],
-                "member":row[1],
-                "status":row[2],
-                "date":row[3]
+                "id": rent[0],
+                "member": rent[1],
+                "status": rent[2],
+                "date": rent[3],
+                "books": ''
             })
+        for index in range(len(rents)):
+            items = cur.execute(f"SELECT books.bk_name FROM rent_item JOIN books on books.bk_id = rent_item.bk_id WHERE rent_item.rt_id = '{rents[index]['id']}'")
+            books = ''
+            for item in items:
+                books += f'{item[0]},'
+            
+            rents[index]['books'] = str(json.dumps(books))
+
         con.commit()
     return render_template("rent.html",rents = rents)
 
@@ -274,3 +285,44 @@ def newrent():
         con.commit()
 
     return render_template("new-rent.html" ,members = members, books = books)
+
+@app.route("/saverent", methods=["POST"])
+@login_required
+def saverent():
+    body = json.loads(request.data)
+    books = body['book']
+    member = body['member']
+    
+    rent_price = 0
+    for row in books:
+        rent_price += int(row['price'])
+    
+    with sqlite3.connect("book_rental_shop.db") as con:
+        cur = con.cursor()
+
+        admin_id = str(session["user_id"])
+        cur.execute(f"INSERT INTO rent (mb_id, rt_price, rt_create_at, rt_create_by) VALUES ('{member['id']}', '{rent_price}', '{datetime.datetime.now()}', '{admin_id}')")
+        bdObjectRent = cur.execute(f"SELECT rt_id FROM rent WHERE mb_id = '{member['id']}' ORDER BY rt_create_at DESC LIMIT 1")
+        for row in bdObjectRent:
+            rent_id = row[0]
+        for row in books:
+            cur.execute(f"INSERT INTO rent_item (rt_id, bk_id) VALUES ('{int(rent_id)}', '{int(row['id'])}')")
+
+        member_credit = 0
+        bdObjectMember = cur.execute(f"SELECT mb_credit FROM members WHERE mb_id = '{member['id']}'")
+        for row in bdObjectMember:
+           member_credit = row[0]
+        cur.execute(f"UPDATE members SET mb_credit = '{member_credit - rent_price}' WHERE mb_id = '{member['id']}'")
+        
+        con.commit()
+
+    return redirect("/rent")
+
+@app.route("/rentchangestatus/<int:rt_id>")
+@login_required
+def rentchangestatus(rt_id):
+    with sqlite3.connect("book_rental_shop.db") as con:
+        cur = con.cursor()
+        admin_id = str(session["user_id"])
+        cur.execute(f"UPDATE rent SET rt_status = 'returned', rt_create_at = '{datetime.datetime.now()}', rt_create_by = '{admin_id}' WHERE rt_id = '{rt_id}'")
+    return redirect("/rent")

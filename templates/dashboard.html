@@ -33,7 +33,12 @@
                 <tr>
                     <th scope="row">{{ rent.id }}</th>
                     <td>{{ rent.member }}</td>
-                    <td>{{ rent.status }}</td>
+                    <td>
+                        {% if rent.status == 'renting' %}
+                        <span class="badge badge-warning">Renting</span> {% endif %} {% if rent.status == 'returned' %}
+                        <span class="badge badge-success">Returned</span> {% endif %}
+
+                    </td>
                     <td>{{ rent.date }}</td>
                 </tr>
                 {% endfor %}
